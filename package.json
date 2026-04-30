@@ -1,0 +1,10 @@
+{
+  "name": "bromcom-gas-helpers",
+  "version": "0.1.0",
+  "description": "Optional helpers for the Bromcom Partner Data API 2.0 Google Apps Script library (timetables)",
+  "private": true,
+  "devDependencies": {
+    "@types/google-apps-script": "^1.0.83",
+    "typescript": "^5.4"
+  }
+}
