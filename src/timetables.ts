@@ -390,7 +390,7 @@ namespace Bromcom {
 
       const seen: Record<string, any> = {};
       for (const e of allEntries) {
-        const key = `${e.weekDisplayName ?? e.weekNumber ?? "1"}|${e.dayOfWeek}|${e.periodDisplayName}`;
+        const key = `${e.weekDisplayName ?? e.weekNumber ?? "1"}|${e.dayOfWeek}|${e.periodDisplayName ?? ""}`;
         const existing = seen[key];
         if (!existing || (e.periodStartDate ?? "") > (existing.periodStartDate ?? "")) {
           seen[key] = e;
@@ -411,7 +411,7 @@ namespace Bromcom {
         const rawRoom = e.locationName ?? null;
         const room = rawRoom && rawRoom.toUpperCase() !== "DEFAULT" ? rawRoom : null;
         let clsName = e.className ?? e.classStaffRoom ?? null;
-        if (clsName) clsName = clsName.replace(/[\r\n]/g, " ").trim();
+        if (clsName) clsName = clsName.replace(/\r/g, "").replace(/\n/g, " ").trim();
         timetable[week][day].push({
           period: e.periodDisplayName ?? "",
           startTime: ttFormatTime(e.periodStartTime),
