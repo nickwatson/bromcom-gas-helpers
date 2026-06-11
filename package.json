@@ -1,6 +1,6 @@
 {
   "name": "bromcom-gas-helpers",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Optional helpers for the Bromcom Partner Data API 2.0 Google Apps Script library (timetables)",
   "private": true,
   "devDependencies": {
