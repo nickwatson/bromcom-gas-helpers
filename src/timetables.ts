@@ -79,9 +79,15 @@ namespace Bromcom {
     return Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd");
   }
 
+  /** Trim a possibly-null API string (values often arrive padded with spaces). */
+  function ttClean(s: string | null | undefined): string {
+    return typeof s === "string" ? s.trim() : "";
+  }
+
   function ttDerivePeriodName(p: PeriodStructures): string {
-    if ((p as any).periodDisplayName) return (p as any).periodDisplayName;
-    const name = (p as any).calendarModelName ?? "";
+    const display = ttClean((p as any).periodDisplayName);
+    if (display) return display;
+    const name = ttClean((p as any).calendarModelName);
     const parts = name.split("_");
     if (parts.length >= 2) {
       const mid = parts[1];
@@ -125,7 +131,8 @@ namespace Bromcom {
     const staffList = http.get("/v2/Staff", schoolId != null ? { schoolId } : undefined, Staff) as Staff[];
     const result: Record<number, string> = {};
     for (const s of staffList) {
-      if (staffIds.has((s as any).staffID) && (s as any).staffCode) result[(s as any).staffID] = (s as any).staffCode;
+      const code = ttClean((s as any).staffCode);
+      if (staffIds.has((s as any).staffID) && code) result[(s as any).staffID] = code;
     }
     return result;
   }
@@ -136,7 +143,7 @@ namespace Bromcom {
     const result: Record<number, string> = {};
     for (const loc of locs) {
       if (locationIds.has((loc as any).locationID)) {
-        const name = (loc as any).roomName ?? (loc as any).locationDescription ?? (loc as any).shortCode ?? "";
+        const name = ttClean((loc as any).roomName) || ttClean((loc as any).locationDescription) || ttClean((loc as any).shortCode);
         if (name && name.toUpperCase() !== "DEFAULT") result[(loc as any).locationID] = name;
       }
     }
@@ -390,7 +397,10 @@ namespace Bromcom {
 
       const seen: Record<string, any> = {};
       for (const e of allEntries) {
-        const key = `${e.weekDisplayName ?? e.weekNumber ?? "1"}|${e.dayOfWeek}|${e.periodDisplayName ?? ""}`;
+        // Key on the stable period identifier, not the user-facing label
+        const periodKey = ttClean(e.periodName) || ttClean(e.periodDisplayName);
+        const week = ttClean(e.weekDisplayName) || String(e.weekNumber ?? "1");
+        const key = `${week}|${ttClean(e.dayOfWeek)}|${periodKey}`;
         const existing = seen[key];
         if (!existing || (e.periodStartDate ?? "") > (existing.periodStartDate ?? "")) {
           seen[key] = e;
@@ -403,17 +413,17 @@ namespace Bromcom {
 
       const timetable: Record<string, Record<string, Slot[]>> = {};
       for (const e of Object.values(seen)) {
-        const week = String(e.weekDisplayName ?? e.weekNumber ?? "Week 1");
-        const day = e.dayOfWeek;
+        const week = ttClean(e.weekDisplayName) || String(e.weekNumber ?? "Week 1");
+        const day = ttClean(e.dayOfWeek);
         if (!day) continue;
         if (!timetable[week]) timetable[week] = {};
         if (!timetable[week][day]) timetable[week][day] = [];
-        const rawRoom = e.locationName ?? null;
+        const rawRoom = ttClean(e.locationName);
         const room = rawRoom && rawRoom.toUpperCase() !== "DEFAULT" ? rawRoom : null;
         let clsName = e.className ?? e.classStaffRoom ?? null;
         if (clsName) clsName = clsName.replace(/\r/g, "").replace(/\n/g, " ").trim();
         timetable[week][day].push({
-          period: e.periodDisplayName ?? "",
+          period: ttClean(e.periodDisplayName) || ttClean(e.periodName),
           startTime: ttFormatTime(e.periodStartTime),
           endTime: ttFormatTime(e.periodEndTime),
           className: clsName,
