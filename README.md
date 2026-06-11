@@ -38,6 +38,12 @@ const grid = timetables.getLive({ studentId: 123 });
 const grid2 = timetables.getLive({ staffId: 456, includeCover: false });
 ```
 
+All string fields in the output are trimmed (the API pads values with trailing
+spaces). Live entries are deduplicated per (week, day, period) — keyed on the
+stable `periodName` so set changes and label renames collapse to the most
+recent entry — while the slot's `period` field shows the trimmed
+`periodDisplayName`, the label users recognise.
+
 **Required endpoints:**
 
 - Template: `CollectionAssociates`, `CollectionTimetables`, `PeriodStructures`, `Staff`, `Locations` (GET)
